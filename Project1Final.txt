@@ -1,0 +1,251 @@
+DATABASE FALL-2016 
+name:Harshithaa Sundareswaran
+
+“I have done this assignment completely on my own. I have not copied it, nor have I given my solution to anyone else. I understand that if I am involved in plagiarism or cheating I will have to sign an official form that I have cheated and that this form will be stored in my official university record. I also understand that I will receive a grade of 0 for the involved assignment for my first offense and that I will receive a grade of “F” for the course for any additional offense.”
+
+
+
+
+SQL> start query1
+SQL> SELECT title, (c.dept_code || c.course#) as course_id FROM courses c, classes s WHERE c.dept_code=s.dept_code and c.course#=s.course# and semester='Spring' and year='2016'
+  2  /
+
+TITLE                COURSE_ID                                                  
+-------------------- --------------------------------------------               
+database systems     CS432                                                      
+data structure       CS240                                                      
+calculus I           Math221                                                    
+database systems     CS532                                                      
+
+SQL> start query2
+SQL> Select s.B#, firstname, lastname, gpa from students s where s.B# in (select e.B# from enrollments e where e.classid in ( SELECT c.classid FROM classes c where dept_code='CS'))
+  2  Intersect
+  3  Select s.B#, firstname, lastname, gpa
+  4  from students s
+  5  where s.B# in (select e.B# from enrollments e
+  6  where e.classid in ( SELECT c.classid
+  7  FROM classes c where dept_code='Math'))
+  8  /
+
+B#   FIRSTNAME       LASTNAME               GPA                                 
+---- --------------- --------------- ----------                                 
+B001 Anne            Broder                3.17                                 
+
+SQL> start query3
+SQL> select dept_code, course# from classes where course# not in (( select course# from classes where semester='Fall') intersect ( select course# from classes where year='2015'))
+  2  /
+
+DEPT    COURSE#                                                                 
+---- ----------                                                                 
+CS          240                                                                 
+CS          432                                                                 
+CS          432                                                                 
+CS          532                                                                 
+Math        221                                                                 
+
+SQL> start query4
+SQL> select B#, firstname, lastname, gpa from students where B# in (select distinct B# from enrollments where lgrade='B-' or lgrade='C+' or lgrade='C' or lgrade='C-' or lgrade='D' or lgrade='F')
+  2  /
+
+B#   FIRSTNAME       LASTNAME               GPA                                 
+---- --------------- --------------- ----------                                 
+B001 Anne            Broder                3.17                                 
+B004 Barbara         Callan                 2.5                                 
+
+SQL> start query5
+SQL> select distinct (firstname || ' ' || lastname) as name from students s, enrollments e where s.B#=e.B# and e.B# not in ( select distinct B# from enrollments where lgrade='A')
+  2  /
+
+NAME                                                                            
+-------------------------------                                                 
+Terry Buttler                                                                   
+Jack Smith                                                                      
+Barbara Callan                                                                  
+
+SQL> start query6
+SQL> select distinct s.B#, f.B# from students s, faculty f where s.deptname!=f.deptname and	s.B# in ( select e.B# from enrollments e where e.classid in ( select c.classid from classes c where c.faculty_B#=f.B# and e.classid=c.classid))
+  2  /
+
+B#   B#                                                                         
+---- ----                                                                       
+B001 B103                                                                       
+B004 B101                                                                       
+B004 B104                                                                       
+B006 B102                                                                       
+B007 B105                                                                       
+
+SQL> start query7
+SQL> select dept_code, course# from classes group by dept_code, course# having count(*)=(select max(count(course#))from classes group by course#)
+  2  /
+
+DEPT    COURSE#                                                                 
+---- ----------                                                                 
+CS          432                                                                 
+Math        314                                                                 
+
+SQL> start query8
+SQL> select classid, dept_code, course#, (limit-class_size)as seats_available from classes where semester='Spring' and year='2016' and class_size!=limit
+  2  /
+
+CLASS DEPT    COURSE# SEATS_AVAILABLE                                           
+----- ---- ---------- ---------------                                           
+c0001 CS          432               1                                           
+c0005 CS          240               1                                           
+c0006 CS          532               1                                           
+
+SQL> start query9a
+SQL> select * from students where B# in (select B# from enrollments group by B# having count(*)>3)
+  2  /
+
+B#   FIRSTNAME       LASTNAME        STATUS            GPA EMAIL                
+---- --------------- --------------- ---------- ---------- -------------------- 
+BDATE     DEPT                                                                  
+--------- ----                                                                  
+B001 Anne            Broder          junior           3.17 broder@bu.edu        
+17-JAN-90 CS                                                                    
+                                                                                
+
+SQL> start query9b
+SQL> select * from students s where s.B# in ( select B# from enrollments where B#=s.B# group by B# having count(*)>3)
+  2  /
+
+B#   FIRSTNAME       LASTNAME        STATUS            GPA EMAIL                
+---- --------------- --------------- ---------- ---------- -------------------- 
+BDATE     DEPT                                                                  
+--------- ----                                                                  
+B001 Anne            Broder          junior           3.17 broder@bu.edu        
+17-JAN-90 CS                                                                    
+                                                                                
+
+SQL> start query10
+SQL> select * from classes c where 3<=(select count(*) from enrollments e where e.classid=c.classid group by classid) and dept_code='CS' and year='2016' and semester='Spring'
+  2  /
+
+CLASS DEPT    COURSE#      SECT#       YEAR SEMESTER      LIMIT CLASS_SIZE FACU 
+----- ---- ---------- ---------- ---------- -------- ---------- ---------- ---- 
+c0005 CS          240          1       2016 Spring           40         39 B104 
+c0006 CS          532          1       2016 Spring           29         28 B102 
+
+SQL> start query11
+SQL> select B#, firstname from students where B# in (select B# from enrollments where students.B#=enrollments.B# and classid in (select classid from classes where enrollments.classid=classes.classid and course# like '4%'))
+  2  /
+
+B#   FIRSTNAME                                                                  
+---- ---------------                                                            
+B001 Anne                                                                       
+B003 Tracy                                                                      
+B004 Barbara                                                                    
+
+SQL> start query12
+SQL> select all title from courses where course# in (select course# from classes where classes.course#=courses.course# and classid in(
+  2  (select classid from enrollments where enrollments.classid=classes.classid and B#='B001') minus
+  3  ((select classid from enrollments where enrollments.classid=classes.classid and B#='B001')intersect(select classid from enrollments where enrollments.classid=classes.classid and B#='B002'))))
+  4  /
+
+TITLE                                                                           
+--------------------                                                            
+database systems                                                                
+discrete math                                                                   
+data structure                                                                  
+database systems                                                                
+
+SQL> start query13
+SQL> select s.firstname from students s, enrollments e where s.B#=e.B# and classid in ( select classid from enrollments f where B#='B005')
+  2  /
+
+FIRSTNAME                                                                       
+---------------                                                                 
+Anne                                                                            
+Jack                                                                            
+Terry                                                                           
+
+SQL> start query14
+SQL> select dept_code, course#, year, semester from classes where sect#>1
+  2  /
+
+DEPT    COURSE#       YEAR SEMESTER                                             
+---- ---------- ---------- --------                                             
+Math        314       2015 Fall                                                 
+
+SQL> start query15
+SQL> select B#, firstname from students where B# in ( select B# from enrollments where lgrade in (select lgrade from grades g1 where ngrade=(select max(ngrade) from grades)))
+  2  /
+
+B#   FIRSTNAME                                                                  
+---- ---------------                                                            
+B001 Anne                                                                       
+B003 Tracy                                                                      
+B006 Terry                                                                      
+B007 Becky                                                                      
+
+SQL> start query16
+SQL> select c.dept_code, c.course#, c.title, nvl(e.lgrade, 'to be assigned') from courses c join classes c1 on (c.course#=c1.course#) join enrollments e on e.classid=c1.classid where
+  2  e.B#='B003' and
+  3  c.course# in (select all course# from classes where classid in (select all classid from enrollments where B#='B003'))
+  4  /
+
+DEPT    COURSE# TITLE                NVL(E.LGRADE,'                             
+---- ---------- -------------------- --------------                             
+CS          432 database systems     I                                          
+CS          432 database systems     A                                          
+CS          240 data structure       to be assigned                             
+
+SQL> start query17
+SQL> select dept_code, course#, title from courses where title like '%systems%' and course# in (select course# from classes where classid in (select classid from enrollments where B# in (select B# from students where gpa>3.25)))
+  2  /
+
+DEPT    COURSE# TITLE                                                           
+---- ---------- --------------------                                            
+CS          432 database systems                                                
+CS          532 database systems                                                
+
+SQL> start query18
+SQL> select s.B#, s.firstname, sum(cc.credits) as total_credit
+  2  from students s, enrollments e, classes c, course_credit cc
+  3  where e.lgrade IS NOT NULL and s.B#=e.B# and e.classid=c.classid and c.course#=cc.course#
+  4  group by s.B#, s.firstname
+  5  /
+
+B#   FIRSTNAME       TOTAL_CREDIT                                               
+---- --------------- ------------                                               
+B007 Becky                      4                                               
+B002 Terry                      4                                               
+B003 Tracy                      8                                               
+B004 Barbara                    8                                               
+B006 Terry                      3                                               
+B001 Anne                      23                                               
+B005 Jack                       3                                               
+
+7 rows selected.
+
+SQL> start query19
+SQL> select avg(total_credit) from (select s.B#, s.firstname, sum(cc.credits) as total_credit
+  2  from students s, enrollments e, classes c, course_credit cc
+  3  where e.lgrade IS NOT NULL and s.B#=e.B# and e.classid=c.classid and c.course#=cc.course#
+  4  group by s.B#, s.firstname)
+  5  /
+
+AVG(TOTAL_CREDIT)                                                               
+-----------------                                                               
+       7.57142857                                                               
+
+SQL> start query20
+SQL> select e.B#, sum(g.ngrade)/count(*) gpa
+  2  from enrollments e join grades g on e.lgrade = g.lgrade
+  3  group by e.B#
+  4  order by GPA desc
+  5  /
+
+B#          GPA                                                                 
+---- ----------                                                                 
+B006          4                                                                 
+B007          4                                                                 
+B001 3.16666667                                                                 
+B002          3                                                                 
+B005          3                                                                 
+B004       2.65                                                                 
+B003          2                                                                 
+
+7 rows selected.
+
+SQL> spool off
